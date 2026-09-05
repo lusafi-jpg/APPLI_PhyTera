@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+  <defs>
+    <linearGradient id="navyBranch" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0E2F52"/>
+      <stop offset="100%" stop-color="#143E6B"/>
+    </linearGradient>
+    <linearGradient id="leafGreen" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#84B035"/>
+      <stop offset="100%" stop-color="#73A028"/>
+    </linearGradient>
+    <style>
+      .circuit-line { stroke: #3A7CA5; stroke-width: 2.5; stroke-linecap: round; fill: none; opacity: 0.8; }
+      .circuit-dot { fill: #529ECC; }
+    </style>
+  </defs>
+
+  <g transform="translate(10, 10)">
+    <path d="M 210,320 
+             C 140,320 80,260 80,180 
+             C 80,100 140,40 220,40 
+             C 270,40 310,65 340,100
+             C 290,65 240,55 190,75
+             C 140,95 115,140 120,195
+             C 125,240 160,285 210,295
+             Z" 
+          fill="url(#navyBranch)" />
+
+    <path d="M 125,190 
+             C 140,150 165,115 200,90
+             C 185,120 175,150 170,185
+             C 160,165 145,175 125,190 Z" 
+          fill="url(#navyBranch)" />
+
+    <path d="M 220,40 
+             C 270,60 330,100 370,150
+             C 330,115 280,85 235,70
+             Z" 
+          fill="url(#navyBranch)" />
+
+    <path d="M 100,160 Q 110,190 125,220" class="circuit-line" />
+    <circle cx="100" cy="160" r="3.5" class="circuit-dot" />
+    <circle cx="125" cy="220" r="3.5" class="circuit-dot" />
+
+    <path d="M 115,120 Q 130,140 140,170" class="circuit-line" />
+    <circle cx="115" cy="120" r="3" class="circuit-dot" />
+    
+    <path d="M 140,240 Q 165,270 190,285" class="circuit-line" />
+    <circle cx="140" cy="240" r="3.5" class="circuit-dot" />
+    <circle cx="190" cy="285" r="3.5" class="circuit-dot" />
+
+    <path d="M 335,50 C 335,25 365,25 380,35 C 380,60 350,60 335,50 Z" fill="url(#leafGreen)" />
+    <path d="M 350,115 C 350,90 385,90 395,105 C 395,130 360,130 350,115 Z" fill="url(#leafGreen)" />
+    <path d="M 350,145 C 360,125 390,135 395,150 C 380,165 350,160 350,145 Z" fill="url(#leafGreen)" />
+    <path d="M 220,130 C 210,110 240,105 255,120 C 255,140 230,145 220,130 Z" fill="url(#leafGreen)" />
+    <path d="M 180,225 C 170,205 205,200 220,215 C 215,235 190,240 180,225 Z" fill="url(#leafGreen)" />
+
+    <text x="240" y="275" font-family="'Inter', 'Montserrat', 'Arial', sans-serif" font-weight="900" font-size="64" fill="#0E2F52" letter-spacing="1">PHY</text>
+    <text x="365" y="275" font-family="'Inter', 'Montserrat', 'Arial', sans-serif" font-weight="900" font-size="64" fill="#84B035" letter-spacing="1">TERA</text>
+  </g>
+</svg>

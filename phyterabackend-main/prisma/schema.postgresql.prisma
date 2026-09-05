@@ -1,0 +1,178 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  AGRICULTEUR
+  TECHNICIEN
+  ADMIN
+}
+
+enum DeviceStatus {
+  ACTIVE
+  OFFLINE
+  MAINTENANCE
+  DISABLED
+}
+
+enum AlertLevel {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+enum AlertType {
+  MILDIOU_RISK
+  OIDIUM_RISK
+  HYDRIC_STRESS
+  HUMIDITE_EXCESSIVE
+  TEMPERATURE_CRITIQUE
+  PH_ANORMAL
+  LUMINOSITE_ANORMALE
+  DEVICE_OFFLINE
+  CUSTOM
+}
+
+enum SubscriptionPlan {
+  STANDARD
+  PRO
+  PREMIUM
+}
+
+model User {
+  id             String         @id @default(uuid())
+  email          String         @unique
+  password       String
+  nom            String
+  role           Role           @default(AGRICULTEUR)
+  isActive       Boolean        @default(true) @map("is_active")
+  preferences    Json?
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+  farms          Farm[]
+  subscriptions  Subscription[]
+  alertsResolved Alert[]        @relation("ResolvedBy")
+
+  @@map("users")
+}
+
+model Farm {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  location    String?
+  ownerId     String   @map("owner_id")
+  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  fields      Field[]
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("farms")
+}
+
+model Field {
+  id              String       @id @default(uuid())
+  name            String
+  description     String?
+  farmId          String       @map("farm_id")
+  farm            Farm         @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  locationPolygon Json?        @map("location_polygon") // GeoJSON Polygon
+  surfaceArea     Float?       @map("surface_area")     // Superficie en m² ou Hectares
+  cultureType     String       @map("culture_type")
+  variety         String?
+  timezone        String       @default("UTC")
+  configLocal     Json?        @map("config_local")
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+  devices         Device[]
+  sensorData      SensorData[]
+  alerts          Alert[]
+
+  @@map("fields")
+}
+
+model Device {
+  id              String       @id @default(uuid())
+  deviceKey       String       @unique @map("device_key")
+  serialNumber    String       @unique @map("serial_number")
+  fieldId         String       @map("field_id")
+  field           Field        @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  deviceType      String       @default("ESP32_PHYTERA") @map("device_type")
+  firmwareVersion String       @default("1.0.0") @map("firmware_version")
+  status          DeviceStatus @default(ACTIVE)
+  lastSeen        DateTime?    @map("last_seen")
+  metadata        Json?
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+  sensorData      SensorData[]
+  alerts          Alert[]
+
+  @@map("devices")
+}
+
+model SensorData {
+  id              String   @id @default(uuid())
+  clientUuid      String   @unique @map("client_uuid") // Clé d'idempotence anti-doublon IoT
+  deviceId        String   @map("device_id")
+  device          Device   @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  fieldId         String   @map("field_id")
+  field           Field    @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  timestamp       DateTime
+  tempAir         Float?   @map("temp_air")
+  humAir          Float?   @map("hum_air")
+  tempSol         Float?   @map("temp_sol")
+  humSol          Float?   @map("hum_sol")
+  phSol           Float?   @map("ph_sol")
+  luminosite      Float?
+  rawPayload      Json?    @map("raw_payload")
+  originTimestamp DateTime? @map("origin_timestamp")
+  ingestedAt      DateTime @default(now()) @map("ingested_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([fieldId, timestamp])
+  @@index([deviceId, timestamp])
+  @@map("sensor_data")
+}
+
+model Alert {
+  id             String     @id @default(uuid())
+  fieldId        String     @map("field_id")
+  field          Field      @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  deviceId       String?    @map("device_id")
+  device         Device?    @relation(fields: [deviceId], references: [id], onDelete: SetNull)
+  type           AlertType
+  level          AlertLevel @default(INFO)
+  title          String
+  message        String
+  detectedAt     DateTime   @default(now()) @map("detected_at")
+  resolved       Boolean    @default(false)
+  resolvedAt     DateTime?  @map("resolved_at")
+  resolutionNote String?    @map("resolution_note")
+  resolvedById   String?    @map("resolved_by_id")
+  resolvedBy     User?      @relation("ResolvedBy", fields: [resolvedById], references: [id])
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+
+  @@index([fieldId, resolved])
+  @@map("alerts")
+}
+
+model Subscription {
+  id        String           @id @default(uuid())
+  userId    String           @map("user_id")
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan      SubscriptionPlan @default(STANDARD)
+  startDate DateTime         @default(now()) @map("start_date")
+  endDate   DateTime?        @map("end_date")
+  active    Boolean          @default(true)
+  limits    Json?
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+
+  @@map("subscriptions")
+}

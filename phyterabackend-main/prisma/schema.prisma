@@ -1,0 +1,337 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  AGRICULTEUR
+  TECHNICIEN
+  ADMIN
+}
+
+enum DeviceStatus {
+  ACTIVE
+  OFFLINE
+  MAINTENANCE
+  DISABLED
+}
+
+enum AlertLevel {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+enum AlertType {
+  MILDIOU_RISK
+  OIDIUM_RISK
+  HYDRIC_STRESS
+  HUMIDITE_EXCESSIVE
+  TEMPERATURE_CRITIQUE
+  PH_ANORMAL
+  LUMINOSITE_ANORMALE
+  DEVICE_OFFLINE
+  CUSTOM
+}
+
+enum SubscriptionPlan {
+  STANDARD
+  PRO
+  PREMIUM
+}
+
+enum NotificationType {
+  PUSH
+  WEBSOCKET
+  WATCH_NOTIFICATION
+  EMAIL
+}
+
+enum NotificationPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum ImageSource {
+  SMARTPHONE
+  DRONE
+  CAMERA
+}
+
+enum CropImageStatus {
+  PENDING
+  ANALYZED
+  CONFIRMED
+  REJECTED
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CANCELLED
+}
+
+enum MissionStatus {
+  SCHEDULED
+  IN_FLIGHT
+  COMPLETED
+  FAILED
+}
+
+model User {
+  id                 String              @id @default(uuid())
+  email              String              @unique
+  password           String
+  nom                String
+  role               Role                @default(AGRICULTEUR)
+  isActive           Boolean             @default(true) @map("is_active")
+  preferences        Json?
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+  farms              Farm[]
+  subscriptions      Subscription[]
+  alertsResolved     Alert[]             @relation("ResolvedBy")
+  auditLogs          AuditLog[]
+  notifications      Notification[]
+  cropImages         CropImage[]
+  maintenanceTickets MaintenanceTicket[] @relation("TechnicianTickets")
+
+  @@map("users")
+}
+
+model Farm {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  location    String?
+  ownerId     String   @map("owner_id")
+  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  fields      Field[]
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("farms")
+}
+
+model Field {
+  id              String         @id @default(uuid())
+  name            String
+  description     String?
+  farmId          String         @map("farm_id")
+  farm            Farm           @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  locationPolygon Json?          @map("location_polygon") // GeoJSON Polygon
+  surfaceArea     Float?         @map("surface_area")     // Superficie en m² ou Hectares
+  cultureType     String         @map("culture_type")
+  variety         String?
+  timezone        String         @default("UTC")
+  configLocal     Json?          @map("config_local")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+  devices         Device[]
+  sensorData      SensorData[]
+  alerts          Alert[]
+  fieldRules      FieldRule[]
+  cropImages      CropImage[]
+  droneMissions   DroneMission[]
+
+  @@map("fields")
+}
+
+model Device {
+  id                 String              @id @default(uuid())
+  deviceKey          String              @unique @map("device_key")
+  serialNumber       String              @unique @map("serial_number")
+  fieldId            String              @map("field_id")
+  field              Field               @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  deviceType         String              @default("ESP32_PHYTERA") @map("device_type")
+  firmwareVersion    String              @default("1.0.0") @map("firmware_version")
+  status             DeviceStatus        @default(ACTIVE)
+  lastSeen           DateTime?           @map("last_seen")
+  metadata           Json?
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+  sensorData         SensorData[]
+  alerts             Alert[]
+  maintenanceTickets MaintenanceTicket[]
+
+  @@map("devices")
+}
+
+model SensorData {
+  id              String    @id @default(uuid())
+  clientUuid      String    @unique @map("client_uuid") // Clé d'idempotence anti-doublon IoT
+  deviceId        String    @map("device_id")
+  device          Device    @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  fieldId         String    @map("field_id")
+  field           Field     @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  timestamp       DateTime
+  tempAir         Float?    @map("temp_air")
+  humAir          Float?    @map("hum_air")
+  tempSol         Float?    @map("temp_sol")
+  humSol          Float?    @map("hum_sol")
+  phSol           Float?    @map("ph_sol")
+  luminosite      Float?
+  rawPayload      Json?     @map("raw_payload")
+  originTimestamp DateTime? @map("origin_timestamp")
+  ingestedAt      DateTime  @default(now()) @map("ingested_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  @@index([fieldId, timestamp])
+  @@index([deviceId, timestamp])
+  @@map("sensor_data")
+}
+
+model Alert {
+  id             String         @id @default(uuid())
+  fieldId        String         @map("field_id")
+  field          Field          @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  deviceId       String?        @map("device_id")
+  device         Device?        @relation(fields: [deviceId], references: [id], onDelete: SetNull)
+  type           AlertType
+  level          AlertLevel     @default(INFO)
+  title          String
+  message        String
+  detectedAt     DateTime       @default(now()) @map("detected_at")
+  resolved       Boolean        @default(false)
+  resolvedAt     DateTime?      @map("resolved_at")
+  resolutionNote String?        @map("resolution_note")
+  resolvedById   String?        @map("resolved_by_id")
+  resolvedBy     User?          @relation("ResolvedBy", fields: [resolvedById], references: [id])
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+  notifications  Notification[]
+
+  @@index([fieldId, resolved])
+  @@map("alerts")
+}
+
+model Subscription {
+  id        String           @id @default(uuid())
+  userId    String           @map("user_id")
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan      SubscriptionPlan @default(STANDARD)
+  startDate DateTime         @default(now()) @map("start_date")
+  endDate   DateTime?        @map("end_date")
+  active    Boolean          @default(true)
+  limits    Json?
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+
+  @@map("subscriptions")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?  @map("user_id")
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String
+  entity    String
+  entityId  String?  @map("entity_id")
+  details   Json?
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@map("audit_logs")
+}
+
+model Notification {
+  id        String               @id @default(uuid())
+  userId    String               @map("user_id")
+  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  alertId   String?              @map("alert_id")
+  alert     Alert?               @relation(fields: [alertId], references: [id], onDelete: SetNull)
+  title     String
+  body      String
+  type      NotificationType     @default(WEBSOCKET)
+  priority  NotificationPriority @default(MEDIUM)
+  read      Boolean              @default(false)
+  readAt    DateTime?            @map("read_at")
+  createdAt DateTime             @default(now()) @map("created_at")
+
+  @@index([userId, read])
+  @@map("notifications")
+}
+
+model FieldRule {
+  id          String   @id @default(uuid())
+  fieldId     String   @map("field_id")
+  field       Field    @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  name        String
+  cultureType String   @map("culture_type")
+  tempAirMin  Float?   @map("temp_air_min")
+  tempAirMax  Float?   @map("temp_air_max")
+  humAirMin   Float?   @map("hum_air_min")
+  humAirMax   Float?   @map("hum_air_max")
+  tempSolMin  Float?   @map("temp_sol_min")
+  tempSolMax  Float?   @map("temp_sol_max")
+  humSolMin   Float?   @map("hum_sol_min")
+  humSolMax   Float?   @map("hum_sol_max")
+  phSolMin    Float?   @map("ph_sol_min")
+  phSolMax    Float?   @map("ph_sol_max")
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("field_rules")
+}
+
+model CropImage {
+  id              String          @id @default(uuid())
+  fieldId         String          @map("field_id")
+  field           Field           @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  userId          String          @map("user_id")
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  imageUrl        String          @map("image_url")
+  source          ImageSource     @default(SMARTPHONE)
+  gpsLat          Float?          @map("gps_lat")
+  gpsLng          Float?          @map("gps_lng")
+  aiDiagnosis     String?         @map("ai_diagnosis")
+  confidenceScore Float?          @map("confidence_score")
+  status          CropImageStatus @default(PENDING)
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+  @@map("crop_images")
+}
+
+model MaintenanceTicket {
+  id               String       @id @default(uuid())
+  deviceId         String       @map("device_id")
+  device           Device       @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  technicianId     String       @map("technician_id")
+  technician       User         @relation("TechnicianTickets", fields: [technicianId], references: [id], onDelete: Cascade)
+  status           TicketStatus @default(OPEN)
+  title            String
+  issueDescription String       @map("issue_description")
+  resolutionNote   String?      @map("resolution_note")
+  interventionDate DateTime?    @map("intervention_date")
+  createdAt        DateTime     @default(now()) @map("created_at")
+  updatedAt        DateTime     @updatedAt @map("updated_at")
+
+  @@map("maintenance_tickets")
+}
+
+model DroneMission {
+  id            String        @id @default(uuid())
+  fieldId       String        @map("field_id")
+  field         Field         @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  flightDate    DateTime      @default(now()) @map("flight_date")
+  pilotName     String?       @map("pilot_name")
+  status        MissionStatus @default(COMPLETED)
+  ndviMapUrl    String?       @map("ndvi_map_url")
+  thermalMapUrl String?       @map("thermal_map_url")
+  metadataJson  Json?         @map("metadata_json")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  @@map("drone_missions")
+}

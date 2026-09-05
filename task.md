@@ -1,0 +1,51 @@
+# Tâches de Développement PhyTera
+
+- [x] Initialisation du Projet
+    - [x] Créer le projet React + Vite
+    - [x] Installer et configurer Tailwind CSS
+    - [x] Installer les dépendances (lucide-react, recharts, react-router-dom, react-leaflet, leaflet, framer-motion)
+- [x] Configuration du Style
+    - [x] Configurer le thème Tailwind (couleurs Navy, accents Néon)
+    - [x] Ajouter les styles globaux (Glassmorphism, Polices)
+    - [x] Intégration du Logo Officiel
+- [x] Architecture & Routing
+    - [x] Configurer React Router (Routes: /, /login, /map, /fields/:id, /alerts, /devices)
+    - [x] Créer le Layout Principal (Sidebar persistante + Header)
+- [x] Pages & Composants
+    - [x] Authentification
+        - [x] Page Login & Inscription
+    - [x] Dashboard (Accueil)
+        - [x] Météo & Status Global
+        - [x] Tuiles de résumé (Alertes, Humidité)
+        - [x] Composants avancés (Welcome, Alerts, Drone View)
+    - [x] Carte Interactive (Map View)
+        - [x] Intégration Leaflet
+        - [x] Affichage des polygones (Champs)
+    - [x] Détail Champ
+        - [x] Jauges Temps Réel (Mock)
+        - [x] Graphiques Historiques (Recharts)
+    - [x] Centre d'Alertes
+        - [x] Liste priorisée
+        - [x] Détails & Actions IA
+    - [x] Gestion Appareils
+        - [x] Liste des capteurs
+        - [x] Modal d'ajout (Scan QR placeholder)
+    - [x] Gestion Abonnements
+        - [x] Page Pricing (Standard, Pro, Premium)
+        - [x] Sélection et modification du plan
+    - [x] Page Analytiques
+        - [x] Structure de la page et KPIs
+        - [x] Graphiques (BarChart, AreaChart, PieChart)
+        - [x] Insights IA
+    - [x] Module Tâches / Interventions
+        - [x] Modal de création de tâche
+    - [x] Module Paramètres
+        - [x] Page Paramètres (Onglets Profil, Sécurité, etc.)
+- [x] Finalisation
+    - [x] Assemblage et Navigation
+    - [x] Vérification Responsive (Mobile & Desktop)
+    - [x] Revue esthétique (Effets "Waoo" & Animations)
+- [x] Notifications
+    - [x] Création du composant Dropdown
+    - [x] Intégration dans le Header
+    - [x] Gestion des états (Lu/Non lu)
