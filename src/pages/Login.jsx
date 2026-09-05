@@ -13,6 +13,7 @@ const Login = () => {
     const [formData, setFormData] = useState({
         email: '',
         password: '',
+        confirmPassword: '',
         nom: '',
         role: 'AGRICULTEUR',
     });
@@ -22,10 +23,17 @@ const Login = () => {
         setLoading(true);
         setError(null);
 
-        if (isRegister && formData.password.length < 6) {
-            setError('Le mot de passe doit contenir au moins 6 caractères.');
-            setLoading(false);
-            return;
+        if (isRegister) {
+            if (formData.password.length < 6) {
+                setError('Le mot de passe doit contenir au moins 6 caractères.');
+                setLoading(false);
+                return;
+            }
+            if (formData.password !== formData.confirmPassword) {
+                setError('Les mots de passe ne correspondent pas.');
+                setLoading(false);
+                return;
+            }
         }
 
         try {
@@ -65,14 +73,13 @@ const Login = () => {
         } catch (err) {
             console.warn('Auth API fallback active:', err.message);
 
-            // Handle duplicate email explicitly if returned by NestJS ConflictException
             if (err.message && err.message.includes('déjà utilisé')) {
                 setError(err.message);
                 setLoading(false);
                 return;
             }
 
-            // Offline-first fallback to ensure registration and login always succeed for demo & usage
+            // Offline-first fallback
             const fallbackUser = {
                 id: 'usr-' + Date.now(),
                 email: formData.email || 'agriculteur@phytera.io',
@@ -207,6 +214,24 @@ const Login = () => {
                                 />
                             </div>
                         </div>
+
+                        {isRegister && (
+                            <div className="space-y-1">
+                                <label className="text-xs font-semibold text-gray-300 uppercase ml-1">Confirmer le mot de passe *</label>
+                                <div className="relative group">
+                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-neon-blue transition-colors" size={18} />
+                                    <input
+                                        type="password"
+                                        required
+                                        minLength={6}
+                                        value={formData.confirmPassword}
+                                        onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                                        className="w-full bg-navy-800/50 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-neon-blue transition-all"
+                                        placeholder="••••••••"
+                                    />
+                                </div>
+                            </div>
+                        )}
 
                         <button
                             type="submit"
