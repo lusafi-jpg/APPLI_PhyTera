@@ -69,7 +69,7 @@ const NotificationPanel = ({ onClose }) => {
     };
 
     return (
-        <div className="absolute top-16 right-4 w-96 max-w-[90vw] bg-navy-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 flex flex-col animate-in fade-in slide-in-from-top-4 duration-200">
+        <div className="absolute top-14 -right-12 sm:right-0 w-[calc(100vw-2rem)] sm:w-96 max-w-[360px] sm:max-w-sm bg-navy-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 flex flex-col animate-in fade-in slide-in-from-top-4 duration-200">
             {/* Header */}
             <div className="p-4 border-b border-white/5 flex items-center justify-between">
                 <div className="flex items-center gap-2">

@@ -43,13 +43,13 @@ const CreateTaskModal = ({ isOpen, onClose, onSubmit }) => {
                     initial={{ scale: 0.9, opacity: 0, y: 20 }}
                     animate={{ scale: 1, opacity: 1, y: 0 }}
                     exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                    className="relative w-full max-w-2xl bg-navy-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
+                    className="relative w-full max-w-2xl bg-navy-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
                 >
                     {/* Header */}
-                    <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between bg-navy-950/50">
+                    <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-white/5 flex items-center justify-between bg-navy-950/50 shrink-0">
                         <div>
-                            <h2 className="text-xl font-bold text-white tracking-wide">Nouvelle Intervention</h2>
-                            <p className="text-sm text-gray-400">Planifier une tâche pour les équipes de terrain</p>
+                            <h2 className="text-lg sm:text-xl font-bold text-white tracking-wide">Nouvelle Intervention</h2>
+                            <p className="text-xs sm:text-sm text-gray-400">Planifier une tâche pour les équipes de terrain</p>
                         </div>
                         <button
                             onClick={onClose}
@@ -60,7 +60,7 @@ const CreateTaskModal = ({ isOpen, onClose, onSubmit }) => {
                     </div>
 
                     {/* Form */}
-                    <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                    <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto flex-1">
                         {/* Title & Type */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">

@@ -30,7 +30,7 @@ export default function AuditLogsPage() {
                     action: 'ROTATE_DEVICE_KEY',
                     entity: 'Device',
                     entityId: 'dev-esp32-001',
-                    user: { nom: 'Mama Hélène', email: 'helene@phytera.io' },
+                    user: { nom: 'Agriculteur Exploitant', email: 'agriculteur@phytera.io' },
                     ipAddress: '197.242.10.12',
                     userAgent: 'PhyTera Mobile/1.0',
                     createdAt: new Date(Date.now() - 7200000).toISOString(),

@@ -97,7 +97,7 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen w-full flex bg-navy-950 text-white font-sans overflow-hidden">
+        <div className="min-h-screen w-full flex bg-navy-950 text-white font-sans overflow-y-auto">
             {/* Left Side - Visual/Brand */}
             <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-12 overflow-hidden">
                 <div className="absolute inset-0 z-0">
@@ -131,17 +131,20 @@ const Login = () => {
             </div>
 
             {/* Right Side - Form */}
-            <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative">
+            <div className="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-8 relative min-h-screen py-8">
                 <div className="absolute top-10 right-10 w-64 h-64 bg-neon-blue/10 rounded-full blur-3xl animate-pulse"></div>
                 <div className="absolute bottom-10 left-10 w-64 h-64 bg-neon-violet/10 rounded-full blur-3xl"></div>
 
-                <div className="max-w-md w-full glass-panel p-8 md:p-12 rounded-3xl relative z-10 shadow-2xl border border-white/5 space-y-6">
+                <div className="max-w-md w-full glass-panel p-6 sm:p-8 md:p-12 rounded-2xl sm:rounded-3xl relative z-10 shadow-2xl border border-white/5 space-y-5 sm:space-y-6">
+                    <div className="lg:hidden flex justify-center mb-1">
+                        <Logo size="md" />
+                    </div>
                     <div className="text-center">
-                        <h3 className="text-2xl font-bold mb-2">
+                        <h3 className="text-xl sm:text-2xl font-bold mb-1.5 sm:mb-2">
                             {isRegister ? 'Créer un Compte Agriculteur' : 'Bienvenue sur PHYTERA'}
                         </h3>
-                        <p className="text-gray-400 text-sm">
-                            {isRegister ? 'Rejoignez la plateforme agro-technologique NestJS/Prisma' : 'Connectez-vous à votre espace agronomique'}
+                        <p className="text-gray-400 text-xs sm:text-sm">
+                            {isRegister ? 'Rejoignez la plateforme agro-technologique' : 'Connectez-vous à votre espace agronomique'}
                         </p>
                     </div>
 

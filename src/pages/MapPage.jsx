@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { MapContainer, TileLayer, Polygon, Popup, Marker } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import { MapPin, Info, Droplets, Sun } from 'lucide-react';
+import { MapPin, Info, Droplets, Sun, ChevronDown, ChevronUp } from 'lucide-react';
 import L from 'leaflet';
 
 // Fix for default marker icon in React Leaflet
@@ -56,28 +56,40 @@ const fields = [
 ];
 
 const MapPage = () => {
+    const [isOverlayOpen, setIsOverlayOpen] = useState(true);
+
     return (
-        <div className="h-[calc(100vh-8rem)] w-full rounded-3xl overflow-hidden border border-white/5 relative shadow-2xl fade-in">
+        <div className="h-[calc(100vh-8rem)] w-full rounded-2xl sm:rounded-3xl overflow-hidden border border-white/5 relative shadow-2xl fade-in">
             {/* Map Controls / Overlay */}
-            <div className="absolute top-4 right-4 z-[400] bg-navy-900/90 backdrop-blur p-4 rounded-2xl border border-white/10 w-64">
-                <h3 className="text-white font-bold mb-3 flex items-center gap-2">
-                    <MapPin size={18} className="text-neon-blue" />
-                    Vue Satellitaire
-                </h3>
-                <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-400">Parcelles Actives</span>
-                        <span className="text-white font-mono">12</span>
+            <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-[400] bg-navy-900/90 backdrop-blur p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-white/10 w-56 sm:w-64 max-w-[calc(100%-1.5rem)] shadow-xl">
+                <button
+                    onClick={() => setIsOverlayOpen(!isOverlayOpen)}
+                    className="w-full text-white font-bold flex items-center justify-between gap-2"
+                >
+                    <span className="flex items-center gap-2 text-sm sm:text-base">
+                        <MapPin size={16} className="text-neon-blue" />
+                        Vue Satellitaire
+                    </span>
+                    <span className="text-gray-400 sm:hidden">
+                        {isOverlayOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                    </span>
+                </button>
+
+                {isOverlayOpen && (
+                    <div className="space-y-2 mt-3 pt-2 border-t border-white/10">
+                        <div className="flex items-center justify-between text-xs sm:text-sm">
+                            <span className="text-gray-400">Parcelles Actives</span>
+                            <span className="text-white font-mono font-bold">12</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs sm:text-sm">
+                            <span className="text-gray-400">Capteurs Online</span>
+                            <span className="text-neon-green font-mono font-bold">98%</span>
+                        </div>
+                        <div className="text-[11px] text-gray-500 pt-1 leading-tight">
+                            Cliquez sur une zone pour voir les détails agronomiques.
+                        </div>
                     </div>
-                    <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-400">Capteurs Online</span>
-                        <span className="text-neon-green font-mono">98%</span>
-                    </div>
-                    <div className="h-px bg-white/10 my-2"></div>
-                    <div className="text-xs text-gray-500">
-                        Cliquez sur une zone pour voir les détails agronomiques.
-                    </div>
-                </div>
+                )}
             </div>
 
             <MapContainer

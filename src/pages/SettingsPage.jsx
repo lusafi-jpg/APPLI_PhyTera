@@ -6,12 +6,13 @@ const SettingsPage = () => {
     const [activeTab, setActiveTab] = useState('profile');
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [userProfile, setUserProfile] = useState({
-        nom: 'Mama Hélène',
-        email: 'm.helene@phytera.ag',
-        role: 'AGRICULTEUR',
-        telephone: '+243 81 234 5678',
-        localisation: 'Kinshasa, RDC',
+    const [userProfile, setUserProfile] = useState(() => {
+        try {
+            const stored = localStorage.getItem('user');
+            return stored ? JSON.parse(stored) : { nom: 'Agriculteur', email: 'agriculteur@phytera.ag', role: 'AGRICULTEUR' };
+        } catch (e) {
+            return { nom: 'Agriculteur', email: 'agriculteur@phytera.ag', role: 'AGRICULTEUR' };
+        }
     });
 
     const [preferences, setPreferences] = useState({
@@ -77,41 +78,41 @@ const SettingsPage = () => {
                 </button>
             </div>
 
-            <div className="flex flex-col md:flex-row gap-8">
+            <div className="flex flex-col md:flex-row gap-6 md:gap-8">
                 {/* Sidebar / Tabs */}
-                <div className="w-full md:w-64 flex-shrink-0 space-y-2">
+                <div className="flex md:flex-col gap-2 overflow-x-auto pb-2 md:pb-0 md:w-64 flex-shrink-0 scrollbar-hide">
                     {tabs.map((tab) => (
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeTab === tab.id
-                                    ? 'bg-neon-blue/10 text-neon-blue border border-neon-blue/20 font-semibold'
-                                    : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                            className={`flex items-center gap-2.5 sm:gap-3 px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-xl transition-all whitespace-nowrap text-sm ${activeTab === tab.id
+                                ? 'bg-neon-blue/10 text-neon-blue border border-neon-blue/20 font-semibold'
+                                : 'text-gray-400 hover:bg-white/5 hover:text-white border border-transparent'
                                 }`}
                         >
-                            <tab.icon size={20} />
-                            <span className="font-medium text-sm">{tab.label}</span>
-                            {activeTab === tab.id && <ChevronRight size={16} className="ml-auto" />}
+                            <tab.icon size={18} className="shrink-0" />
+                            <span className="font-medium">{tab.label}</span>
+                            {activeTab === tab.id && <ChevronRight size={16} className="ml-auto hidden md:inline" />}
                         </button>
                     ))}
                 </div>
 
                 {/* Content Area */}
-                <div className="flex-1">
-                    <div className="bg-navy-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6 md:p-8 space-y-6">
+                <div className="flex-1 min-w-0">
+                    <div className="bg-navy-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-6 md:p-8 space-y-6">
                         {/* Profile Tab */}
                         {activeTab === 'profile' && (
                             <div className="space-y-6">
-                                <div className="flex items-center gap-6">
+                                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 text-center sm:text-left">
                                     <img
                                         src={`https://ui-avatars.com/api/?name=${encodeURIComponent(userProfile.nom)}&background=0284c7&color=fff&size=128`}
                                         alt="Profile"
-                                        className="w-20 h-20 rounded-full border-2 border-neon-blue/40 shadow-xl"
+                                        className="w-20 h-20 rounded-full border-2 border-neon-blue/40 shadow-xl shrink-0"
                                     />
                                     <div>
                                         <h3 className="text-xl font-bold text-white">{userProfile.nom}</h3>
                                         <p className="text-gray-400 text-xs font-mono uppercase mt-0.5">{userProfile.role || 'AGRICULTEUR'}</p>
-                                        <div className="mt-2 flex gap-2">
+                                        <div className="mt-2 flex justify-center sm:justify-start gap-2">
                                             <span className="px-2.5 py-0.5 rounded-full bg-neon-blue/10 text-neon-cyan text-[10px] font-bold uppercase border border-neon-blue/30">
                                                 Compte Vérifié
                                             </span>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { TriangleAlert, Info, CheckCircle, Search, Filter, BrainCircuit, Droplets, RefreshCw } from 'lucide-react';
+import { TriangleAlert, Info, CheckCircle, Search, Filter, BrainCircuit, Droplets, RefreshCw, ArrowLeft } from 'lucide-react';
 import { alertsService } from '../services/alertsService';
 
 const AlertsPage = () => {
@@ -8,6 +8,7 @@ const AlertsPage = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [resolving, setResolving] = useState(false);
+    const [showMobileDetail, setShowMobileDetail] = useState(false);
 
     const fetchAlerts = async () => {
         setLoading(true);
@@ -80,7 +81,7 @@ const AlertsPage = () => {
     return (
         <div className="flex flex-col md:flex-row h-[calc(100vh-8rem)] gap-6 fade-in">
             {/* Alerts List */}
-            <div className="w-full md:w-1/3 flex flex-col gap-4 overflow-hidden">
+            <div className={`${showMobileDetail ? 'hidden md:flex' : 'flex'} w-full md:w-1/3 flex-col gap-4 overflow-hidden`}>
                 <div className="flex items-center gap-3">
                     <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
@@ -104,7 +105,10 @@ const AlertsPage = () => {
                     {filteredAlerts.map((alert) => (
                         <div
                             key={alert.id}
-                            onClick={() => setSelectedAlert(alert)}
+                            onClick={() => {
+                                setSelectedAlert(alert);
+                                setShowMobileDetail(true);
+                            }}
                             className={`
                 p-4 rounded-xl border bg-navy-800/50 cursor-pointer transition-all
                 ${alert.level === 'CRITICAL' ? 'border-red-500/40 hover:bg-red-500/10' : alert.level === 'WARNING' ? 'border-amber-500/40 hover:bg-amber-500/10' : 'border-neon-blue/40 hover:bg-neon-blue/10'}
@@ -128,10 +132,21 @@ const AlertsPage = () => {
             </div>
 
             {/* Alert Detail Panel */}
-            <div className="hidden md:flex flex-1 glass-panel rounded-3xl p-8 flex-col relative overflow-hidden bg-navy-900/70 backdrop-blur-xl border border-white/10">
+            <div className={`${showMobileDetail ? 'flex' : 'hidden md:flex'} flex-1 glass-panel rounded-2xl sm:rounded-3xl p-5 sm:p-8 flex-col relative overflow-y-auto bg-navy-900/70 backdrop-blur-xl border border-white/10`}>
+                {/* Mobile Back Button */}
+                {showMobileDetail && (
+                    <button
+                        onClick={() => setShowMobileDetail(false)}
+                        className="md:hidden flex items-center gap-2 text-xs font-semibold text-neon-blue hover:text-neon-cyan mb-3 self-start px-3 py-1.5 rounded-lg bg-white/5 border border-white/10"
+                    >
+                        <ArrowLeft size={16} />
+                        <span>Retour aux alertes</span>
+                    </button>
+                )}
+
                 {selectedAlert ? (
                     <div className="relative z-10 space-y-6">
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                             <span
                                 className={`px-3 py-1 rounded-full text-xs font-bold uppercase border ${selectedAlert.level === 'CRITICAL'
                                         ? 'bg-red-500/20 text-red-400 border-red-500/40'
@@ -143,15 +158,15 @@ const AlertsPage = () => {
                                 {selectedAlert.level || 'INFO'}
                             </span>
                             <span className="text-gray-400 text-xs font-mono">Type: {selectedAlert.type}</span>
-                            <span className="text-gray-400 text-xs font-mono ml-auto">ID: #{selectedAlert.id.slice(0, 8)}</span>
+                            <span className="text-gray-400 text-xs font-mono sm:ml-auto">ID: #{selectedAlert.id.slice(0, 8)}</span>
                         </div>
 
                         <div>
-                            <h2 className="text-3xl font-bold text-white mb-1">{selectedAlert.title}</h2>
-                            <p className="text-lg text-neon-cyan">{selectedAlert.field?.name || 'Parcelle Concernée'}</p>
+                            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-1">{selectedAlert.title}</h2>
+                            <p className="text-base sm:text-lg text-neon-cyan">{selectedAlert.field?.name || 'Parcelle Concernée'}</p>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="p-4 bg-navy-950/80 rounded-xl border border-white/5">
                                 <h4 className="text-xs font-semibold text-gray-400 uppercase mb-2">Description de l'Alerte</h4>
                                 <p className="text-sm text-white">{selectedAlert.message}</p>

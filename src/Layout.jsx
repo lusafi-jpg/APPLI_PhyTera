@@ -16,16 +16,18 @@ import {
     Settings,
     Menu,
     CreditCard,
-    LogOut
+    LogOut,
+    X
 } from 'lucide-react';
 import Logo from './components/Logo';
 import NotificationPanel from './components/NotificationPanel';
 import CreateTaskModal from './components/CreateTaskModal';
 import { authService } from './services/authService';
 
-const SidebarItem = ({ to, icon: Icon, label, active }) => (
+const SidebarItem = ({ to, icon: Icon, label, active, onClick }) => (
     <NavLink
         to={to}
+        onClick={onClick}
         className={({ isActive }) => `
       flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 mb-0.5 group
       ${isActive || active
@@ -43,7 +45,14 @@ const Layout = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [showNotifications, setShowNotifications] = useState(false);
     const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
-    const [user, setUser] = useState({ nom: 'Mama Hélène', role: 'AGRICULTEUR' });
+    const [user, setUser] = useState(() => {
+        try {
+            const storedUser = localStorage.getItem('user');
+            return storedUser ? JSON.parse(storedUser) : { nom: 'Agriculteur', role: 'AGRICULTEUR' };
+        } catch (e) {
+            return { nom: 'Agriculteur', role: 'AGRICULTEUR' };
+        }
+    });
     const notificationButtonRef = useRef(null);
 
     useEffect(() => {
@@ -84,37 +93,46 @@ const Layout = () => {
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
                 {/* Logo Area */}
-                <div className="p-6 pb-4">
-                    <Logo size="md" showText={true} />
-                    <span className="text-[10px] text-neon-cyan uppercase tracking-widest font-semibold ml-[52px] -mt-1 block">Agro Intelligence</span>
+                <div className="p-6 pb-4 flex items-center justify-between">
+                    <div>
+                        <Logo size="md" showText={true} />
+                        <span className="text-[10px] text-neon-cyan uppercase tracking-widest font-semibold ml-[52px] -mt-1 block">Agro Intelligence</span>
+                    </div>
+                    <button
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="md:hidden p-2 text-gray-400 hover:text-white rounded-xl hover:bg-white/10 transition-colors"
+                        title="Fermer le menu"
+                    >
+                        <X size={20} />
+                    </button>
                 </div>
 
                 {/* Navigation */}
                 <nav className="flex-1 px-4 py-2 overflow-y-auto space-y-1 scrollbar-hide">
                     <div className="mb-2 px-4 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Menu Principal</div>
-                    <SidebarItem to="/" icon={LayoutDashboard} label="Tableau de Bord" />
-                    <SidebarItem to="/farms" icon={Tractor} label="Exploitations" />
-                    <SidebarItem to="/fields" icon={MapIcon} label="Parcelles" />
-                    <SidebarItem to="/analytics" icon={Activity} label="Analytiques" />
-                    <SidebarItem to="/alerts" icon={Bell} label="Alertes" />
-                    <SidebarItem to="/devices" icon={Cpu} label="Appareils ESP32" />
+                    <SidebarItem to="/" icon={LayoutDashboard} label="Tableau de Bord" onClick={() => setIsMobileMenuOpen(false)} />
+                    <SidebarItem to="/farms" icon={Tractor} label="Exploitations" onClick={() => setIsMobileMenuOpen(false)} />
+                    <SidebarItem to="/fields" icon={MapIcon} label="Parcelles" onClick={() => setIsMobileMenuOpen(false)} />
+                    <SidebarItem to="/analytics" icon={Activity} label="Analytiques" onClick={() => setIsMobileMenuOpen(false)} />
+                    <SidebarItem to="/alerts" icon={Bell} label="Alertes" onClick={() => setIsMobileMenuOpen(false)} />
+                    <SidebarItem to="/devices" icon={Cpu} label="Appareils ESP32" onClick={() => setIsMobileMenuOpen(false)} />
 
                     <div className="mt-6 mb-2 px-4 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Modules Avancés</div>
-                    <SidebarItem to="/crop-analysis" icon={Sparkles} label="Diagnostic IA" />
-                    <SidebarItem to="/drone-missions" icon={Disc} label="Survol Drone" />
-                    <SidebarItem to="/maintenance" icon={Wrench} label="Maintenance Tech" />
-                    <SidebarItem to="/notifications" icon={Bell} label="Notifications" />
+                    <SidebarItem to="/crop-analysis" icon={Sparkles} label="Diagnostic IA" onClick={() => setIsMobileMenuOpen(false)} />
+                    <SidebarItem to="/drone-missions" icon={Disc} label="Survol Drone" onClick={() => setIsMobileMenuOpen(false)} />
+                    <SidebarItem to="/maintenance" icon={Wrench} label="Maintenance Tech" onClick={() => setIsMobileMenuOpen(false)} />
+                    <SidebarItem to="/notifications" icon={Bell} label="Notifications" onClick={() => setIsMobileMenuOpen(false)} />
 
                     {user.role === 'ADMIN' && (
                         <>
                             <div className="mt-6 mb-2 px-4 text-[11px] font-bold text-red-400 uppercase tracking-wider">Administration</div>
-                            <SidebarItem to="/audit-logs" icon={ShieldCheck} label="Journaux Audit" />
+                            <SidebarItem to="/audit-logs" icon={ShieldCheck} label="Journaux Audit" onClick={() => setIsMobileMenuOpen(false)} />
                         </>
                     )}
 
                     <div className="mt-6 mb-2 px-4 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Compte</div>
-                    <SidebarItem to="/subscription" icon={CreditCard} label="Abonnement" />
-                    <SidebarItem to="/settings" icon={Settings} label="Paramètres" />
+                    <SidebarItem to="/subscription" icon={CreditCard} label="Abonnement" onClick={() => setIsMobileMenuOpen(false)} />
+                    <SidebarItem to="/settings" icon={Settings} label="Paramètres" onClick={() => setIsMobileMenuOpen(false)} />
                 </nav>
 
                 {/* Action & User Profile inside Sidebar */}
@@ -151,9 +169,9 @@ const Layout = () => {
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col h-full relative overflow-hidden">
                 {/* Header */}
-                <header className="h-16 px-6 flex items-center justify-between border-b border-white/5 bg-navy-950/50 backdrop-blur-sm z-30 relative">
-                    <div className="flex items-center gap-4">
-                        <button className="md:hidden text-gray-400 hover:text-white" onClick={() => setIsMobileMenuOpen(true)}>
+                <header className="h-16 px-4 sm:px-6 flex items-center justify-between border-b border-white/5 bg-navy-950/50 backdrop-blur-sm z-30 relative">
+                    <div className="flex items-center gap-3 sm:gap-4">
+                        <button className="md:hidden text-gray-400 hover:text-white p-1 rounded-lg hover:bg-white/5" onClick={() => setIsMobileMenuOpen(true)}>
                             <Menu size={24} />
                         </button>
 
@@ -169,7 +187,7 @@ const Layout = () => {
                     </div>
 
                     {/* Right Actions */}
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3">
                         <div className="relative" ref={notificationButtonRef}>
                             <button
                                 className={`btn-icon relative p-2 rounded-xl bg-navy-900 border border-white/10 hover:border-white/20 text-gray-300 hover:text-white ${showNotifications ? 'bg-white/10 text-white' : ''}`}
@@ -193,7 +211,7 @@ const Layout = () => {
                         {/* Header Logout Button */}
                         <button
                             onClick={handleLogout}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 text-xs font-semibold transition-all"
+                            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 text-xs font-semibold transition-all"
                             title="Déconnexion"
                         >
                             <LogOut size={15} />
@@ -203,7 +221,7 @@ const Layout = () => {
                 </header>
 
                 {/* Content */}
-                <main className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth" onClick={() => setShowNotifications(false)}>
+                <main className="flex-1 overflow-y-auto p-3 sm:p-5 md:p-8 scroll-smooth" onClick={() => setShowNotifications(false)}>
                     <div className="max-w-7xl mx-auto w-full">
                         <Outlet />
                     </div>
