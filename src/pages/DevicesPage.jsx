@@ -20,9 +20,12 @@ import {
     Server,
     Eye,
     EyeOff,
+    BarChart3,
+    ArrowRight,
 } from 'lucide-react';
 import { devicesService } from '../services/devicesService';
 import { fieldsService } from '../services/fieldsService';
+import DeviceDashboardView from '../components/devices/DeviceDashboardView';
 
 const DevicesPage = () => {
     const [devices, setDevices] = useState([]);
@@ -30,6 +33,9 @@ const DevicesPage = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [submitting, setSubmitting] = useState(false);
+
+    // Active Dashboard View for a specific boîtier
+    const [selectedDeviceForDashboard, setSelectedDeviceForDashboard] = useState(null);
 
     // Modal Enregistrer Boîtier
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -131,16 +137,21 @@ const DevicesPage = () => {
                 signalQuality: Number(wifiConfig.signalQuality) || -58,
             });
 
+            // Update local selected device copy
+            const updated = {
+                ...selectedDevice,
+                metadata: res.metadata,
+                status: 'ACTIVE',
+            };
+            setSelectedDevice(updated);
+
             setWifiStatusMsg({
                 type: 'success',
                 text: `Boîtier connecté avec succès au réseau Wi-Fi "${wifiConfig.ssid}" (IP: ${res.metadata?.wifiIp || wifiConfig.ipAddress})`,
+                device: updated,
             });
 
             fetchDevicesAndFields();
-
-            setTimeout(() => {
-                setIsWifiModalOpen(false);
-            }, 1800);
         } catch (err) {
             setWifiStatusMsg({
                 type: 'error',
@@ -166,6 +177,9 @@ const DevicesPage = () => {
         if (!confirm('Désassocier et supprimer ce boîtier ?')) return;
         try {
             await devicesService.removeDevice(id);
+            if (selectedDeviceForDashboard?.id === id) {
+                setSelectedDeviceForDashboard(null);
+            }
             fetchDevicesAndFields();
         } catch (err) {
             alert(`Erreur suppression: ${err.message}`);
@@ -209,7 +223,7 @@ const DevicesPage = () => {
 
 const char* ssid     = "${ssid}";
 const char* password = "${pass}";
-const char* serverUrl = "${apiUrl}";
+const char* serverUrl = "${apiUrl}/batch";
 const char* deviceKey = "${key}";
 
 void setup() {
@@ -231,9 +245,6 @@ void setup() {
     Serial.println("\\n[PhyTera] Connecté au Wi-Fi !");
     Serial.print("[PhyTera] Adresse IP: ");
     Serial.println(WiFi.localIP());
-    Serial.print("[PhyTera] Signal RSSI: ");
-    Serial.print(WiFi.RSSI());
-    Serial.println(" dBm");
   } else {
     Serial.println("\\n[PhyTera] Erreur de connexion Wi-Fi.");
   }
@@ -246,21 +257,41 @@ void loop() {
     http.addHeader("Content-Type", "application/json");
     http.addHeader("x-device-key", deviceKey);
 
-    StaticJsonDocument<200> doc;
-    doc["temperature"] = 24.5;
-    doc["humidity"] = 62.0;
-    doc["soilMoisture"] = 48.0;
+    StaticJsonDocument<512> doc;
+    doc["deviceKey"] = deviceKey;
+    JsonArray measurements = doc.createNestedArray("measurements");
+
+    JsonObject m = measurements.createNestedObject();
+    m["clientUuid"] = String(millis()) + "-" + String(random(1000, 9999));
+    m["timestamp"] = "2026-09-05T16:00:00Z";
+    m["tempAir"] = 24.5;
+    m["humAir"] = 62.0;
+    m["tempSol"] = 21.0;
+    m["humSol"] = 55.0;
+    m["phSol"] = 6.5;
+    m["luminosite"] = 18500;
 
     String requestBody;
     serializeJson(doc, requestBody);
 
     int httpResponseCode = http.POST(requestBody);
-    Serial.printf("[PhyTera] Télémétrie envoyée, Code HTTP: %d\\n", httpResponseCode);
+    Serial.printf("[PhyTera] Télémétrie transmise, Code HTTP: %d\\n", httpResponseCode);
     http.end();
   }
   delay(60000); // Envoi chaque minute
 }`;
     };
+
+    // If a device dashboard is active, render the full Dashboard & History view
+    if (selectedDeviceForDashboard) {
+        return (
+            <DeviceDashboardView
+                device={selectedDeviceForDashboard}
+                onBack={() => setSelectedDeviceForDashboard(null)}
+                onOpenWifiModal={(dev) => handleOpenWifiModal(dev)}
+            />
+        );
+    }
 
     return (
         <div className="fade-in space-y-6">
@@ -274,7 +305,7 @@ void loop() {
                         <span>L'Appareils (Boîtier )</span>
                     </h2>
                     <p className="text-gray-400 text-xs sm:text-sm">
-                        Total: {devices.length} boîtier(s) IoT enregistrés • Connectivité Wi-Fi & capteurs en temps réel
+                        Total : {devices.length} boîtier(s) IoT enregistrés • Connectivité Wi-Fi, dashboard & historique des mesures
                     </p>
                 </div>
 
@@ -323,7 +354,7 @@ void loop() {
                         <p className="text-gray-400 text-xs sm:text-sm mt-1">
                             {searchTerm
                                 ? 'Aucun boîtier ne correspond à votre recherche.'
-                                : 'Associez votre premier boîtier physique ESP32 pour recevoir la télémétrie des parcelles et configurer sa connexion Wi-Fi.'}
+                                : 'Associez votre premier boîtier physique ESP32 pour recevoir la télémétrie des parcelles, le connecter au Wi-Fi et visualiser son historique de données.'}
                         </p>
                     </div>
                     <button
@@ -433,22 +464,31 @@ void loop() {
 
                                 {/* Actions */}
                                 <div className="mt-4 pt-3 border-t border-white/5 flex flex-col gap-2">
-                                    {/* Main Wi-Fi Connect Button */}
+                                    {/* Primary Button: Dashboard & Historique */}
                                     <button
-                                        onClick={() => handleOpenWifiModal(device)}
-                                        className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-neon-blue/20 to-neon-cyan/20 border border-neon-blue/40 hover:border-neon-cyan text-neon-blue hover:text-white transition flex items-center justify-center gap-2 text-xs font-semibold shadow-sm group-hover:shadow-neon-blue/10"
+                                        onClick={() => setSelectedDeviceForDashboard(device)}
+                                        className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-neon-blue to-neon-cyan text-navy-900 font-bold transition flex items-center justify-center gap-2 text-xs shadow-md shadow-neon-blue/20 hover:shadow-neon-blue/40 active:scale-95"
                                     >
-                                        <Wifi size={14} className="text-neon-cyan" />
-                                        <span>{isWifiConnected ? 'Reconfigurer le Wi-Fi' : 'Connecter au Wi-Fi'}</span>
+                                        <BarChart3 size={15} />
+                                        <span>Dashboard & Historique</span>
                                     </button>
 
-                                    <div className="flex items-center justify-between px-1">
+                                    {/* Secondary Wi-Fi Button */}
+                                    <button
+                                        onClick={() => handleOpenWifiModal(device)}
+                                        className="w-full py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white transition flex items-center justify-center gap-2 text-xs font-semibold"
+                                    >
+                                        <Wifi size={14} className="text-neon-cyan" />
+                                        <span>{isWifiConnected ? 'Paramètres Wi-Fi' : 'Connecter au Wi-Fi'}</span>
+                                    </button>
+
+                                    <div className="flex items-center justify-between px-1 pt-1">
                                         <button
                                             onClick={() => handleRotateKey(device.id)}
                                             className="text-[11px] text-gray-400 hover:text-amber-400 flex items-center gap-1 transition"
                                             title="Régénérer clé x-device-key"
                                         >
-                                            <Key size={12} /> Régénérer clé
+                                            <Key size={12} /> Clé
                                         </button>
                                         <button
                                             onClick={() => handleDeleteDevice(device.id)}
@@ -480,7 +520,7 @@ void loop() {
                                     </h3>
                                     <p className="text-xs text-gray-400">
                                         Boîtier : <span className="text-neon-cyan font-mono font-semibold">{selectedDevice.serialNumber}</span>
-                                        {selectedDevice.field?.name ? ` • Parcelle: ${selectedDevice.field.name}` : ''}
+                                        {selectedDevice.field?.name ? ` • Parcelle : ${selectedDevice.field.name}` : ''}
                                     </p>
                                 </div>
                             </div>
@@ -529,10 +569,10 @@ void loop() {
                             </button>
                         </div>
 
-                        {/* Status alert message */}
+                        {/* Status alert message with direct link to dashboard */}
                         {wifiStatusMsg && (
                             <div
-                                className={`p-3 rounded-xl text-xs flex items-center gap-2 ${
+                                className={`p-3.5 rounded-xl text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
                                     wifiStatusMsg.type === 'success'
                                         ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-300'
                                         : wifiStatusMsg.type === 'error'
@@ -540,14 +580,29 @@ void loop() {
                                         : 'bg-cyan-500/15 border border-cyan-500/30 text-cyan-300'
                                 }`}
                             >
-                                {wifiStatusMsg.type === 'success' ? (
-                                    <CheckCircle2 size={16} />
-                                ) : wifiStatusMsg.type === 'error' ? (
-                                    <AlertCircle size={16} />
-                                ) : (
-                                    <RefreshCw size={16} className="animate-spin" />
+                                <div className="flex items-center gap-2">
+                                    {wifiStatusMsg.type === 'success' ? (
+                                        <CheckCircle2 size={18} className="text-emerald-400 flex-shrink-0" />
+                                    ) : wifiStatusMsg.type === 'error' ? (
+                                        <AlertCircle size={18} className="text-red-400 flex-shrink-0" />
+                                    ) : (
+                                        <RefreshCw size={18} className="animate-spin text-cyan-400 flex-shrink-0" />
+                                    )}
+                                    <span>{wifiStatusMsg.text}</span>
+                                </div>
+
+                                {wifiStatusMsg.type === 'success' && (
+                                    <button
+                                        onClick={() => {
+                                            setIsWifiModalOpen(false);
+                                            setSelectedDeviceForDashboard(wifiStatusMsg.device || selectedDevice);
+                                        }}
+                                        className="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-navy-950 font-bold flex items-center gap-1.5 text-xs transition shadow-md whitespace-nowrap"
+                                    >
+                                        <span>Voir le Dashboard</span>
+                                        <ArrowRight size={14} />
+                                    </button>
                                 )}
-                                <span>{wifiStatusMsg.text}</span>
                             </div>
                         )}
 
@@ -603,7 +658,7 @@ void loop() {
                                         </button>
                                     </div>
                                     <p className="text-[11px] text-gray-500">
-                                        Note: Le module ESP32 requiert un réseau Wi-Fi 2.4 GHz.
+                                        Note : Le module ESP32 requiert un réseau Wi-Fi 2.4 GHz.
                                     </p>
                                 </div>
 
