@@ -3,8 +3,6 @@ import {
     Cpu,
     Wifi,
     WifiOff,
-    Battery,
-    Signal,
     Plus,
     X,
     Search,
@@ -16,12 +14,12 @@ import {
     AlertCircle,
     Copy,
     Check,
-    ExternalLink,
     Server,
     Eye,
     EyeOff,
     BarChart3,
     ArrowRight,
+    Signal,
 } from 'lucide-react';
 import { devicesService } from '../services/devicesService';
 import { fieldsService } from '../services/fieldsService';
@@ -52,7 +50,6 @@ const DevicesPage = () => {
     const [wifiTab, setWifiTab] = useState('direct'); // 'direct' | 'ap' | 'firmware'
     const [showPassword, setShowPassword] = useState(false);
     const [copiedCode, setCopiedCode] = useState(false);
-    const [copiedKey, setCopiedKey] = useState(false);
     const [wifiSubmitting, setWifiSubmitting] = useState(false);
     const [wifiStatusMsg, setWifiStatusMsg] = useState(null);
 
@@ -137,7 +134,6 @@ const DevicesPage = () => {
                 signalQuality: Number(wifiConfig.signalQuality) || -58,
             });
 
-            // Update local selected device copy
             const updated = {
                 ...selectedDevice,
                 metadata: res.metadata,
@@ -186,15 +182,10 @@ const DevicesPage = () => {
         }
     };
 
-    const copyToClipboard = (text, type = 'key') => {
+    const copyToClipboard = (text) => {
         navigator.clipboard.writeText(text);
-        if (type === 'key') {
-            setCopiedKey(true);
-            setTimeout(() => setCopiedKey(false), 2000);
-        } else {
-            setCopiedCode(true);
-            setTimeout(() => setCopiedCode(false), 2000);
-        }
+        setCopiedCode(true);
+        setTimeout(() => setCopiedCode(false), 2000);
     };
 
     const filteredDevices = devices.filter(
@@ -801,7 +792,7 @@ void loop() {
                                         Code C++ complet préconfiguré avec votre clé secrète <span className="text-cyan-300 font-mono font-semibold">x-device-key</span> :
                                     </p>
                                     <button
-                                        onClick={() => copyToClipboard(getArduinoSnippet(), 'code')}
+                                        onClick={() => copyToClipboard(getArduinoSnippet())}
                                         className="px-3 py-1.5 rounded-lg bg-navy-800 hover:bg-navy-700 text-cyan-300 border border-cyan-500/30 flex items-center gap-1.5 text-xs transition"
                                     >
                                         {copiedCode ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
