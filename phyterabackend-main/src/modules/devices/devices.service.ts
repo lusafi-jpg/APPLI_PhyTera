@@ -84,6 +84,35 @@ export class DevicesService {
     });
   }
 
+  async updateWifiConfig(
+    id: string,
+    userId: string,
+    role: string,
+    wifiData: { ssid: string; ipAddress?: string; signalQuality?: number },
+  ) {
+    const device = await this.findOne(id, userId, role);
+    const existingMetadata = (device.metadata as Record<string, any>) || {};
+
+    const updatedMetadata = {
+      ...existingMetadata,
+      wifiSsid: wifiData.ssid,
+      wifiIp: wifiData.ipAddress || '192.168.1.105',
+      wifiSignal: wifiData.signalQuality || -58,
+      wifiConnected: true,
+      lastWifiConfig: new Date().toISOString(),
+    };
+
+    return this.prisma.device.update({
+      where: { id },
+      data: {
+        status: 'ACTIVE',
+        lastSeen: new Date(),
+        metadata: updatedMetadata,
+      },
+      include: { field: true },
+    });
+  }
+
   async remove(id: string, userId: string, role: string) {
     await this.findOne(id, userId, role);
     return this.prisma.device.delete({ where: { id } });

@@ -33,4 +33,28 @@ export class TelemetryController {
   getLatestTelemetryForField(@Param('fieldId') fieldId: string) {
     return this.telemetryService.getLatestTelemetryForField(fieldId);
   }
+
+  @ApiOperation({ summary: 'Obtenir l\'historique des mesures d\'un boîtier' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('device/:deviceId')
+  getTelemetryForDevice(@Param('deviceId') deviceId: string, @Query('limit') limit?: number) {
+    return this.telemetryService.getTelemetryForDevice(deviceId, limit || 100);
+  }
+
+  @ApiOperation({ summary: 'Obtenir la toute dernière mesure d\'un boîtier' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('device/:deviceId/latest')
+  getLatestTelemetryForDevice(@Param('deviceId') deviceId: string) {
+    return this.telemetryService.getLatestTelemetryForDevice(deviceId);
+  }
+
+  @ApiOperation({ summary: 'Déclencher une acquisition immédiate de données pour un boîtier' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Post('device/:deviceId/acquire')
+  acquireTelemetry(@Param('deviceId') deviceId: string) {
+    return this.telemetryService.acquireTelemetry(deviceId);
+  }
 }

@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Param, Put, Delete, UseGuards } from '@nes
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { DevicesService } from './devices.service';
 import { RegisterDeviceDto } from './dto/register-device.dto';
+import { ConfigureWifiDto } from './dto/configure-wifi.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { GetUser } from '../../common/decorators/get-user.decorator';
 
@@ -32,6 +33,17 @@ export class DevicesController {
   @Get(':id')
   findOne(@Param('id') id: string, @GetUser('id') userId: string, @GetUser('role') role: string) {
     return this.devicesService.findOne(id, userId, role);
+  }
+
+  @ApiOperation({ summary: 'Configurer la connexion Wi-Fi du boîtier' })
+  @Put(':id/wifi')
+  configureWifi(
+    @Param('id') id: string,
+    @GetUser('id') userId: string,
+    @GetUser('role') role: string,
+    @Body() dto: ConfigureWifiDto,
+  ) {
+    return this.devicesService.updateWifiConfig(id, userId, role, dto);
   }
 
   @ApiOperation({ summary: 'Régénérer la clé unique (deviceKey) d\'un boîtier' })

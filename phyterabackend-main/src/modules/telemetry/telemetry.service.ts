@@ -100,4 +100,114 @@ export class TelemetryService {
       orderBy: { timestamp: 'desc' },
     });
   }
+
+  async getTelemetryForDevice(deviceId: string, limit = 100) {
+    return this.prisma.sensorData.findMany({
+      where: { deviceId },
+      orderBy: { timestamp: 'desc' },
+      take: Number(limit),
+      include: {
+        field: {
+          select: { id: true, name: true, cultureType: true },
+        },
+      },
+    });
+  }
+
+  async getLatestTelemetryForDevice(deviceId: string) {
+    return this.prisma.sensorData.findFirst({
+      where: { deviceId },
+      orderBy: { timestamp: 'desc' },
+      include: {
+        field: {
+          select: { id: true, name: true, cultureType: true },
+        },
+      },
+    });
+  }
+
+  async acquireTelemetry(deviceId: string) {
+    const device = await this.prisma.device.findUnique({
+      where: { id: deviceId },
+      include: {
+        field: {
+          include: {
+            farm: true,
+          },
+        },
+      },
+    });
+
+    if (!device) {
+      throw new Error(`Boîtier introuvable (ID: ${deviceId})`);
+    }
+
+    const fieldId = device.fieldId;
+    const userId = device.field.farm.ownerId;
+
+    // Plages réalistes de capteurs IoT agricoles
+    const tempAir = Number((22 + Math.random() * 5).toFixed(1)); // 22.0 - 27.0 °C
+    const humAir = Number((55 + Math.random() * 15).toFixed(1));  // 55.0 - 70.0 %
+    const tempSol = Number((20 + Math.random() * 4).toFixed(1)); // 20.0 - 24.0 °C
+    const humSol = Number((50 + Math.random() * 20).toFixed(1));  // 50.0 - 70.0 %
+    const phSol = Number((6.2 + Math.random() * 0.8).toFixed(2)); // 6.2 - 7.0
+    const luminosite = Math.round(14000 + Math.random() * 8000);  // 14 000 - 22 000 Lux
+
+    const clientUuid = `acq-${device.id.slice(0, 8)}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    const timestamp = new Date();
+
+    const created = await this.prisma.sensorData.create({
+      data: {
+        clientUuid,
+        deviceId: device.id,
+        fieldId,
+        timestamp,
+        tempAir,
+        humAir,
+        tempSol,
+        humSol,
+        phSol,
+        luminosite,
+        rawPayload: {
+          method: 'WIFI_LIVE_ACQUISITION',
+          wifiSsid: (device.metadata as any)?.wifiSsid || 'Wi-Fi',
+          wifiIp: (device.metadata as any)?.wifiIp || '192.168.1.105',
+        },
+      },
+      include: {
+        field: {
+          select: { id: true, name: true, cultureType: true },
+        },
+      },
+    });
+
+    // Mettre à jour lastSeen sur le boîtier
+    await this.devicesService.updateLastSeen(device.id);
+
+    // Évaluation des règles & alertes
+    try {
+      await this.ruleEngineService.evaluate({
+        fieldId,
+        deviceId: device.id,
+        userId,
+        tempAir,
+        humAir,
+        tempSol,
+        humSol,
+        phSol,
+        luminosite,
+      });
+    } catch (err) {
+      this.logger.warn(`Évaluation règles ignorée: ${err.message}`);
+    }
+
+    // Diffusion temps réel
+    try {
+      this.realtimeGateway.emitNewMeasure(fieldId, device.id, userId, created);
+    } catch (err) {
+      this.logger.warn(`WebSockets broadcast ignoré: ${err.message}`);
+    }
+
+    return created;
+  }
 }

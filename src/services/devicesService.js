@@ -23,6 +23,14 @@ export const devicesService = {
         });
     },
 
+    async configureWifi(id, data) {
+        // dto: { ssid, password, ipAddress, signalQuality }
+        return await apiFetch(`/api/v1/devices/${id}/wifi`, {
+            method: 'PUT',
+            body: data,
+        });
+    },
+
     async removeDevice(id) {
         return await apiFetch(`/api/v1/devices/${id}`, {
             method: 'DELETE',

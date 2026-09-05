@@ -115,7 +115,7 @@ const Layout = () => {
                     <SidebarItem to="/fields" icon={MapIcon} label="Parcelles" onClick={() => setIsMobileMenuOpen(false)} />
                     <SidebarItem to="/analytics" icon={Activity} label="Analytiques" onClick={() => setIsMobileMenuOpen(false)} />
                     <SidebarItem to="/alerts" icon={Bell} label="Alertes" onClick={() => setIsMobileMenuOpen(false)} />
-                    <SidebarItem to="/devices" icon={Cpu} label="Appareils ESP32" onClick={() => setIsMobileMenuOpen(false)} />
+                    <SidebarItem to="/devices" icon={Cpu} label="L'Appareils (Boîtier )" onClick={() => setIsMobileMenuOpen(false)} />
 
                     <div className="mt-6 mb-2 px-4 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Modules Avancés</div>
                     <SidebarItem to="/crop-analysis" icon={Sparkles} label="Diagnostic IA" onClick={() => setIsMobileMenuOpen(false)} />
