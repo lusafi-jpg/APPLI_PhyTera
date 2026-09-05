@@ -12,27 +12,8 @@ export default function NotificationsPage() {
             const data = await notificationsService.getMyNotifications();
             setNotifications(Array.isArray(data) ? data : []);
         } catch (err) {
-            console.warn('Backend notifications endpoint error, fallback to mock data');
-            setNotifications([
-                {
-                    id: 'notif-1',
-                    title: 'Alerte Risque Mildiou élevée',
-                    body: 'Humidité de 92% mesurée sur la Parcelle Nord. Risque d\'infection imminente.',
-                    type: 'WEBSOCKET',
-                    priority: 'HIGH',
-                    read: false,
-                    createdAt: new Date().toISOString(),
-                },
-                {
-                    id: 'notif-2',
-                    title: 'Survol Drone Terminé',
-                    body: 'La carte NDVI de la Parcelle Sud est disponible.',
-                    type: 'PUSH',
-                    priority: 'MEDIUM',
-                    read: true,
-                    createdAt: new Date(Date.now() - 3600000).toISOString(),
-                },
-            ]);
+            console.warn('Backend notifications endpoint error:', err.message);
+            setNotifications([]);
         } finally {
             setLoading(false);
         }

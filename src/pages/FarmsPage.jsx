@@ -17,27 +17,9 @@ export default function FarmsPage() {
             const data = await farmsService.getAllFarms();
             setFarms(Array.isArray(data) ? data : []);
         } catch (err) {
-            console.warn('Backend server unreachable, displaying fallback farms list.');
+            console.warn('Backend farms endpoint error:', err.message);
             setError('Impossible de se connecter au serveur backend NestJS.');
-            // Fallback demo data matching Prisma Farm model
-            setFarms([
-                {
-                    id: 'farm-1',
-                    name: 'Domaine de la Vallée Green',
-                    location: 'Kasangulu, Kongo Central',
-                    description: 'Exploitation de maraîchage et maïs sous serre intelligente',
-                    fields: [{ id: 'f1' }, { id: 'f2' }],
-                    createdAt: new Date().toISOString(),
-                },
-                {
-                    id: 'farm-2',
-                    name: 'Ferme Agro-Tech Maluku',
-                    location: 'Maluku, Kinshasa',
-                    description: 'Culture de manioc, tomates et système d\'irrigation automatisé',
-                    fields: [{ id: 'f3' }],
-                    createdAt: new Date().toISOString(),
-                },
-            ]);
+            setFarms([]);
         } finally {
             setLoading(false);
         }

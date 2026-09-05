@@ -29,8 +29,9 @@ export default function DroneMissionsPage() {
                     setNewMission((prev) => ({ ...prev, fieldId: fetchedFields[0].id }));
                 }
             } catch (err) {
-                setFields([{ id: 'field-1', name: 'Parcelle Sud - Maïs' }]);
-                setSelectedFieldId('field-1');
+                console.warn('Backend fields unavailable:', err.message);
+                setFields([]);
+                setSelectedFieldId('');
             } finally {
                 setLoading(false);
             }
@@ -39,24 +40,18 @@ export default function DroneMissionsPage() {
     }, []);
 
     const fetchMissions = async (fieldId) => {
-        if (!fieldId) return;
+        if (!fieldId) {
+            setMissions([]);
+            setLoading(false);
+            return;
+        }
         setLoading(true);
         try {
             const data = await droneService.getFieldDroneMissions(fieldId);
             setMissions(Array.isArray(data) ? data : []);
         } catch (err) {
-            console.warn('Backend drone missions endpoint error, fallback to mock data');
-            setMissions([
-                {
-                    id: 'drone-m1',
-                    fieldId: fieldId,
-                    flightDate: new Date().toISOString(),
-                    pilotName: 'Jean Technicien (Pilote Certifié DGAC)',
-                    status: 'COMPLETED',
-                    ndviMapUrl: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=800&auto=format&fit=crop',
-                    thermalMapUrl: 'https://images.unsplash.com/photo-1524813686514-a57563d77965?q=80&w=800&auto=format&fit=crop',
-                },
-            ]);
+            console.warn('Backend drone missions endpoint error:', err.message);
+            setMissions([]);
         } finally {
             setLoading(false);
         }

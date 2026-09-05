@@ -29,9 +29,9 @@ export default function CropAnalysisPage() {
                     setNewImage((prev) => ({ ...prev, fieldId: fetchedFields[0].id }));
                 }
             } catch (err) {
-                console.warn('Backend fields unavailable, using demo fields.');
-                setFields([{ id: 'field-1', name: 'Parcelle Nord - Tomates' }]);
-                setSelectedFieldId('field-1');
+                console.warn('Backend fields unavailable:', err.message);
+                setFields([]);
+                setSelectedFieldId('');
             } finally {
                 setLoading(false);
             }
@@ -40,35 +40,18 @@ export default function CropAnalysisPage() {
     }, []);
 
     const fetchCropImages = async (fieldId) => {
-        if (!fieldId) return;
+        if (!fieldId) {
+            setImages([]);
+            setLoading(false);
+            return;
+        }
         setLoading(true);
         try {
             const data = await cropImagesService.getFieldImages(fieldId);
             setImages(Array.isArray(data) ? data : []);
         } catch (err) {
-            console.warn('Backend crop images endpoint error, fallback to mock data');
-            setImages([
-                {
-                    id: 'crop-1',
-                    fieldId: fieldId,
-                    imageUrl: 'https://images.unsplash.com/photo-1592417817098-8f3d6eb231fc?q=80&w=600&auto=format&fit=crop',
-                    source: 'SMARTPHONE',
-                    aiDiagnosis: 'Signes précoces de Mildiou détectés sur le feuillage inférieur',
-                    confidenceScore: 0.94,
-                    status: 'ANALYZED',
-                    createdAt: new Date().toISOString(),
-                },
-                {
-                    id: 'crop-2',
-                    fieldId: fieldId,
-                    imageUrl: 'https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?q=80&w=600&auto=format&fit=crop',
-                    source: 'DRONE',
-                    aiDiagnosis: 'Stress hydrique modéré repéré sur le secteur Est',
-                    confidenceScore: 0.87,
-                    status: 'CONFIRMED',
-                    createdAt: new Date(Date.now() - 86400000).toISOString(),
-                },
-            ]);
+            console.warn('Backend crop images endpoint error:', err.message);
+            setImages([]);
         } finally {
             setLoading(false);
         }

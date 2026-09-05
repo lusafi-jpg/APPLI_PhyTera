@@ -18,31 +18,9 @@ const AlertsPage = () => {
             setAlerts(list);
             if (list.length > 0) setSelectedAlert(list[0]);
         } catch (err) {
-            console.warn('Backend alerts unavailable, using demo alert list.');
-            const demoList = [
-                {
-                    id: 'alt-1',
-                    type: 'MILDIOU_RISK',
-                    level: 'CRITICAL',
-                    title: 'Détection Risque Mildiou',
-                    message: 'Taux d\'humidité de 94% mesuré sur la Parcelle Nord. Risque de foyer fongique élevé.',
-                    resolved: false,
-                    detectedAt: new Date().toISOString(),
-                    field: { name: 'Parcelle Nord - Tomates' },
-                },
-                {
-                    id: 'alt-2',
-                    type: 'HYDRIC_STRESS',
-                    level: 'WARNING',
-                    title: 'Stress Hydrique Important',
-                    message: 'Humidité du sol inférieure à 18% sur le secteur Est.',
-                    resolved: false,
-                    detectedAt: new Date(Date.now() - 3600000).toISOString(),
-                    field: { name: 'Parcelle Est - Maïs' },
-                },
-            ];
-            setAlerts(demoList);
-            setSelectedAlert(demoList[0]);
+            console.warn('Backend alerts unavailable:', err.message);
+            setAlerts([]);
+            setSelectedAlert(null);
         } finally {
             setLoading(false);
         }

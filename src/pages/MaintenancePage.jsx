@@ -22,29 +22,8 @@ export default function MaintenancePage() {
             const data = await maintenanceService.getMyInterventions();
             setTickets(Array.isArray(data) ? data : []);
         } catch (err) {
-            console.warn('Backend maintenance endpoint error, fallback to mock data');
-            setTickets([
-                {
-                    id: 'ticket-1',
-                    title: 'Calibration du capteur d\'humidité du sol',
-                    issueDescription: 'Dérive de lecture constatée sur le boîtier ESP32 #001',
-                    status: 'IN_PROGRESS',
-                    resolutionNote: 'Capteur nettoyé, réétalonnage en cours.',
-                    interventionDate: new Date().toISOString(),
-                    device: { serialNumber: 'ESP32-PHY-001', deviceType: 'ESP32_PHYTERA' },
-                    createdAt: new Date().toISOString(),
-                },
-                {
-                    id: 'ticket-2',
-                    title: 'Remplacement batterie panneau solaire',
-                    issueDescription: 'Micro-coupures de tension observées la nuit',
-                    status: 'RESOLVED',
-                    resolutionNote: 'Remplacement de la batterie LiFePO4 effectué avec succès.',
-                    interventionDate: new Date(Date.now() - 172800000).toISOString(),
-                    device: { serialNumber: 'ESP32-PHY-002', deviceType: 'ESP32_PHYTERA' },
-                    createdAt: new Date(Date.now() - 172800000).toISOString(),
-                },
-            ]);
+            console.warn('Backend maintenance endpoint error:', err.message);
+            setTickets([]);
         } finally {
             setLoading(false);
         }

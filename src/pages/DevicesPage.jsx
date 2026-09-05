@@ -32,27 +32,8 @@ const DevicesPage = () => {
                 setNewDevice((prev) => ({ ...prev, fieldId: fieldList[0].id }));
             }
         } catch (err) {
-            console.warn('Backend devices endpoint unavailable, using demo list.');
-            setDevices([
-                {
-                    id: 'dev-1',
-                    serialNumber: 'ESP32-PHY-001',
-                    deviceKey: 'dk_live_938210398',
-                    status: 'ACTIVE',
-                    deviceType: 'ESP32_PHYTERA',
-                    field: { name: 'Parcelle Nord' },
-                    lastSeen: new Date().toISOString(),
-                },
-                {
-                    id: 'dev-2',
-                    serialNumber: 'ESP32-PHY-002',
-                    deviceKey: 'dk_live_483920182',
-                    status: 'MAINTENANCE',
-                    deviceType: 'ESP32_PHYTERA',
-                    field: { name: 'Parcelle Est' },
-                    lastSeen: new Date(Date.now() - 86400000).toISOString(),
-                },
-            ]);
+            console.warn('Backend devices endpoint unavailable:', err.message);
+            setDevices([]);
         } finally {
             setLoading(false);
         }
