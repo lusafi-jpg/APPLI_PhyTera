@@ -39,7 +39,7 @@ const DeviceDashboardView = ({ device, onBack, onOpenWifiModal }) => {
     const [notification, setNotification] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
 
-    const isWifiConnected = Boolean(device.metadata?.wifiConnected);
+    const isWifiConnected = Boolean(device.metadata?.wifiConnected || device.metadata?.wifiSsid);
     const wifiSsid = device.metadata?.wifiSsid;
     const wifiIp = device.metadata?.wifiIp;
     const wifiSignal = device.metadata?.wifiSignal;

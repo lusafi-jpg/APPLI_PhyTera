@@ -84,8 +84,16 @@ const MapPage = () => {
                                 </button>
                             </div>
                         ) : (
-                            <div className="text-[11px] text-gray-500 pt-1 leading-tight">
-                                Cliquez sur une parcelle pour afficher les indicateurs agronomiques.
+                            <div className="pt-2 border-t border-white/5 space-y-2">
+                                <div className="text-[11px] text-gray-500 leading-tight">
+                                    Cliquez sur une parcelle pour afficher les indicateurs agronomiques.
+                                </div>
+                                <button
+                                    onClick={() => navigate('/farms')}
+                                    className="w-full py-1.5 bg-neon-blue/10 hover:bg-neon-blue/20 border border-neon-blue/30 text-neon-cyan rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition"
+                                >
+                                    <Plus size={13} /> Gérer / Créer un champ
+                                </button>
                             </div>
                         )}
                     </div>
@@ -123,12 +131,12 @@ const MapPage = () => {
                                         {field.name}
                                     </h4>
                                     <p className="text-xs text-navy-700 mb-2">Culture: {field.cultureType || 'Non spécifiée'}</p>
-                                    <a
-                                        href={`/fields/${field.id}`}
+                                    <button
+                                        onClick={() => navigate(`/fields/${field.id}`)}
                                         className="block w-full text-center mt-2 bg-navy-900 text-white text-xs py-1.5 rounded-lg hover:bg-navy-800 transition"
                                     >
                                         Détails Parcelle
-                                    </a>
+                                    </button>
                                 </div>
                             </Popup>
                         </Polygon>
